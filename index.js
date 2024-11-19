@@ -21,7 +21,7 @@ const entrySchema = new mongoose.Schema({
   refId: {type: String, required: true},
   description: {type: String, required: true},
   duration: {type: Number, required: true},
-  date: {type: Date, required: true}
+  date: {type: Date}
 });
 
 User = mongoose.model('User', userSchema);
@@ -183,7 +183,7 @@ const createLogEntry = async (userId, description, duration, date, done) =>{
   try {
     const entry = new Entry({
       refId: userId,
-      date: Date(date),
+      date: date === undefined ? new Date() : new Date(date),
       description: description,
       duration: Number(duration)
     })
@@ -206,7 +206,11 @@ const getLogEntries = async (userId, from, to, limit, done) => {
     query = query.sort('date').select('description duration date');
     const logs = [];
     for await(const log of query){
-      logs.push(log);
+      logs.push({
+        description: log.description,
+        duration: log.duration,
+        date: log.date.toDateString(),
+      });
     }
     
     done(null, logs)
